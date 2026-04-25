@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="theme-color" content="#fff5e6" />
+<title>晩ご飯ガチャ</title>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&family=Kosugi+Maru&display=swap" rel="stylesheet"/>
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+body {
+  font-family: "Kosugi Maru", system-ui, sans-serif;
+  color: #4a2a1c;
+  background: linear-gradient(180deg, #ffe0c0, #ffd6a5);
+  touch-action: manipulation; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#app {
+  display: flex; flex-direction: column;
+  height: 100dvh; padding: 12px 14px; gap: 10px;
+  max-width: 480px; margin: 0 auto;
+}
+header { display: flex; justify-content: space-between; align-items: center; }
+.title {
+  font-family: "Mochiy Pop P One", sans-serif;
+  font-size: 24px; color: #ff5733;
+  -webkit-text-stroke: 2.5px #fff; paint-order: stroke fill;
+  text-shadow: 3px 3px 0 #4a2a1c, 5px 5px 0 #ffb84d;
+  margin: 0; transform: rotate(-2deg);
+}
+.icon-btn {
+  background: #fff; border: 2.5px solid #4a2a1c; color: #4a2a1c;
+  padding: 5px 10px; border-radius: 999px; font-size: 13px; font-weight: 900; cursor: pointer;
+  box-shadow: 2px 2px 0 #4a2a1c;
+}
+.intro { text-align: center; font-size: 13px; opacity: 0.85; line-height: 1.6; }
+.intro b { color: #ff5733; }
+
+.filter-row {
+  display: flex; gap: 6px; overflow-x: auto; padding: 2px;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+.filter-btn {
+  flex: 0 0 auto;
+  background: #fff; border: 2.5px solid #4a2a1c;
+  color: #4a2a1c; padding: 6px 14px;
+  border-radius: 999px; cursor: pointer;
+  font-family: "Mochiy Pop P One", sans-serif; font-size: 12px;
+  box-shadow: 2px 2px 0 #4a2a1c;
+}
+.filter-btn.on { background: #ff5733; color: #fff; }
+
+.stage {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 16px;
+  position: relative;
+}
+.dish {
+  width: 80%; max-width: 320px; aspect-ratio: 1;
+  background: radial-gradient(circle at 50% 35%, #fff8e0, #fff5d8 60%, #f0d8a8 100%);
+  border: 4px solid #4a2a1c; border-radius: 50%;
+  box-shadow: 6px 6px 0 #4a2a1c, inset 0 -8px 18px rgba(0,0,0,0.1);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+.dish .em {
+  font-size: clamp(80px, 22vw, 130px);
+  line-height: 1;
+}
+.dish .nm {
+  font-family: "Mochiy Pop P One", sans-serif;
+  font-size: clamp(20px, 5.5vw, 28px);
+  margin-top: 8px;
+  color: #4a2a1c;
+}
+.dish .tag {
+  margin-top: 6px;
+  background: #ff5733; color: #fff;
+  padding: 2px 10px; border-radius: 999px;
+  font-size: 11px;
+}
+.dish.spinning .em { animation: spin 0.6s linear infinite; }
+@keyframes spin {
+  0% { transform: rotate(0); }
+  100% { transform: rotate(360deg); }
+}
+.dish.empty .em { font-size: 50px; opacity: 0.5; }
+.dish.empty .nm { opacity: 0.5; font-size: 18px; }
+.dish.bounce { animation: dishBounce 0.5s ease-out; }
+@keyframes dishBounce {
+  0% { transform: scale(1) rotate(0); }
+  30% { transform: scale(1.12) rotate(-3deg); }
+  60% { transform: scale(0.95) rotate(2deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+.gacha-btn {
+  background: linear-gradient(180deg, #ff7a3a, #d93a1a);
+  border: 4px solid #4a2a1c;
+  color: #fff;
+  font-family: "Mochiy Pop P One", sans-serif;
+  font-size: 22px; letter-spacing: 0.05em;
+  padding: 18px 36px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 5px 5px 0 #4a2a1c;
+  text-shadow: 2px 2px 0 #4a2a1c;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+.gacha-btn:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 #4a2a1c; }
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.gacha-btn:disabled { opacity: 0.6; animation: none; cursor: wait; }
+.gacha-btn .sub { display: block; font-size: 11px; opacity: 0.85; margin-top: 2px; }
+
+.history {
+  background: rgba(255,255,255,0.6);
+  border: 2.5px solid #4a2a1c; border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 11px;
+}
+.history .l { font-size: 9px; opacity: 0.6; letter-spacing: 0.1em; }
+.history .items {
+  display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px;
+}
+.history .items span {
+  background: #fff; border: 1.5px solid #4a2a1c;
+  border-radius: 999px; padding: 2px 8px; font-size: 11px;
+}
+
+.actions { display: flex; gap: 8px; justify-content: center; }
+.actions button {
+  background: #fff; border: 2.5px solid #4a2a1c; color: #4a2a1c;
+  padding: 8px 16px; border-radius: 999px;
+  font-family: "Kosugi Maru", sans-serif; font-size: 12px;
+  cursor: pointer; box-shadow: 2px 2px 0 #4a2a1c;
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1 class="title">晩ご飯ガチャ</h1>
+    <button class="icon-btn" id="btn-history-clear" title="履歴クリア">↺</button>
+  </header>
+  <div class="intro">「今夜なに食べる？」を <b>ガチャで決定</b>。<br/>カテゴリで絞り込みも可。</div>
+
+  <div class="filter-row" id="filter-row"></div>
+
+  <div class="stage">
+    <div class="dish empty" id="dish">
+      <div class="em">🍽️</div>
+      <div class="nm">ボタンを押して！</div>
+    </div>
+    <button class="gacha-btn" id="btn-go">
+      🎲 ガチャを回す
+      <span class="sub">＝今夜のメニュー＝</span>
+    </button>
+  </div>
+
+  <div class="history">
+    <div class="l">最近のガチャ結果（重複避けます）</div>
+    <div class="items" id="hist-items"></div>
+  </div>
+
+  <div class="actions">
+    <button id="btn-share">🔗 シェア</button>
+    <button id="btn-recipe">🔍 レシピを検索</button>
+  </div>
+</div>
+<script>
+(() => {
+  'use strict';
+  const STORAGE = 'yuhan_history_v1';
+  const SHARE_URL = 'https://maxtakaharu34-cmd.github.io/yuhan-jp/';
+  const DISHES = [
+    // jp
+    {em:'🍣', nm:'お寿司', cat:'jp', tag:'和食'},
+    {em:'🍱', nm:'のり弁', cat:'jp', tag:'和食'},
+    {em:'🍙', nm:'おにぎり', cat:'jp', tag:'和食'},
+    {em:'🍢', nm:'おでん', cat:'jp', tag:'和食'},
+    {em:'🍤', nm:'天丼', cat:'jp', tag:'和食'},
+    {em:'🍛', nm:'カレーライス', cat:'jp', tag:'和食'},
+    {em:'🥘', nm:'肉じゃが', cat:'jp', tag:'和食'},
+    {em:'🐟', nm:'焼き魚定食', cat:'jp', tag:'和食'},
+    {em:'🥘', nm:'親子丼', cat:'jp', tag:'和食'},
+    {em:'🍳', nm:'卵かけご飯', cat:'jp', tag:'和食'},
+    {em:'🍜', nm:'うどん', cat:'jp', tag:'麺'},
+    {em:'🍜', nm:'そば', cat:'jp', tag:'麺'},
+    // chinese
+    {em:'🥟', nm:'餃子', cat:'cn', tag:'中華'},
+    {em:'🍜', nm:'ラーメン', cat:'cn', tag:'麺'},
+    {em:'🥢', nm:'チャーハン', cat:'cn', tag:'中華'},
+    {em:'🌶️', nm:'麻婆豆腐', cat:'cn', tag:'中華'},
+    {em:'🍲', nm:'酸辣湯', cat:'cn', tag:'中華'},
+    {em:'🍳', nm:'天津飯', cat:'cn', tag:'中華'},
+    {em:'🥬', nm:'青椒肉絲', cat:'cn', tag:'中華'},
+    {em:'🍤', nm:'エビチリ', cat:'cn', tag:'中華'},
+    // western
+    {em:'🍝', nm:'パスタ', cat:'we', tag:'洋食'},
+    {em:'🍕', nm:'ピザ', cat:'we', tag:'洋食'},
+    {em:'🍔', nm:'ハンバーガー', cat:'we', tag:'洋食'},
+    {em:'🥗', nm:'シーザーサラダ', cat:'we', tag:'洋食'},
+    {em:'🍳', nm:'オムライス', cat:'we', tag:'洋食'},
+    {em:'🥩', nm:'ステーキ', cat:'we', tag:'洋食'},
+    {em:'🍗', nm:'唐揚げ', cat:'we', tag:'洋食'},
+    {em:'🍔', nm:'タコライス', cat:'we', tag:'洋食'},
+    {em:'🌮', nm:'タコス', cat:'we', tag:'洋食'},
+    {em:'🍞', nm:'サンドイッチ', cat:'we', tag:'軽食'},
+    // asian
+    {em:'🍛', nm:'タイカレー', cat:'as', tag:'エスニック'},
+    {em:'🍢', nm:'パッタイ', cat:'as', tag:'エスニック'},
+    {em:'🍲', nm:'プルコギ', cat:'as', tag:'韓国'},
+    {em:'🌶️', nm:'ビビンバ', cat:'as', tag:'韓国'},
+    {em:'🥘', nm:'チゲ鍋', cat:'as', tag:'韓国'},
+    {em:'🍢', nm:'サムギョプサル', cat:'as', tag:'韓国'},
+    {em:'🍜', nm:'フォー', cat:'as', tag:'エスニック'},
+    {em:'🍛', nm:'インドカレー', cat:'as', tag:'エスニック'},
+    // light
+    {em:'🍙', nm:'コンビニおにぎり', cat:'lite', tag:'軽食'},
+    {em:'🥗', nm:'コンビニサラダ', cat:'lite', tag:'軽食'},
+    {em:'🥪', nm:'サンドイッチ', cat:'lite', tag:'軽食'},
+    {em:'🍳', nm:'目玉焼き&トースト', cat:'lite', tag:'軽食'},
+    {em:'🍞', nm:'食パン', cat:'lite', tag:'軽食'},
+    // hot pot
+    {em:'🍲', nm:'すき焼き', cat:'pot', tag:'鍋'},
+    {em:'🍲', nm:'しゃぶしゃぶ', cat:'pot', tag:'鍋'},
+    {em:'🍲', nm:'寄せ鍋', cat:'pot', tag:'鍋'},
+    {em:'🍲', nm:'もつ鍋', cat:'pot', tag:'鍋'},
+    {em:'🍲', nm:'ちゃんこ鍋', cat:'pot', tag:'鍋'},
+    // delivery
+    {em:'🍕', nm:'宅配ピザ', cat:'del', tag:'デリバリー'},
+    {em:'🍱', nm:'デリバリー弁当', cat:'del', tag:'デリバリー'},
+    {em:'🍔', nm:'マック', cat:'del', tag:'デリバリー'},
+    {em:'🍗', nm:'ケンタッキー', cat:'del', tag:'デリバリー'},
+    {em:'🍣', nm:'回転寿司テイクアウト', cat:'del', tag:'デリバリー'}
+  ];
+  const FILTERS = [
+    { id: 'all', label: 'ぜんぶ' },
+    { id: 'jp',  label: '和食' },
+    { id: 'cn',  label: '中華' },
+    { id: 'we',  label: '洋食' },
+    { id: 'as',  label: 'アジア' },
+    { id: 'pot', label: '鍋' },
+    { id: 'lite',label: '軽食' },
+    { id: 'del', label: '宅配' }
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const dish = $('dish');
+  const histItems = $('hist-items');
+  const filterRow = $('filter-row');
+  const btnGo = $('btn-go');
+  let activeFilter = 'all';
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(STORAGE) || '[]'); } catch {}
+  let current = null;
+
+  function buildFilters() {
+    while (filterRow.firstChild) filterRow.removeChild(filterRow.firstChild);
+    for (const f of FILTERS) {
+      const b = document.createElement('button');
+      b.className = 'filter-btn' + (f.id === activeFilter ? ' on' : '');
+      b.textContent = f.label;
+      b.addEventListener('click', () => { activeFilter = f.id; buildFilters(); });
+      filterRow.appendChild(b);
+    }
+  }
+
+  function renderHistory() {
+    while (histItems.firstChild) histItems.removeChild(histItems.firstChild);
+    if (history.length === 0) {
+      const e = document.createElement('span');
+      e.style.opacity = '0.5'; e.style.background = 'transparent'; e.style.border = 'none';
+      e.textContent = 'まだ履歴なし';
+      histItems.appendChild(e);
+      return;
+    }
+    for (const h of history.slice(0, 8)) {
+      const s = document.createElement('span');
+      s.textContent = h.em + ' ' + h.nm;
+      histItems.appendChild(s);
+    }
+  }
+
+  function pickDish() {
+    let pool = DISHES.filter((d) => activeFilter === 'all' || d.cat === activeFilter);
+    if (pool.length === 0) pool = DISHES;
+    // avoid repeating the last 3
+    const recent = new Set(history.slice(0, 3).map((h) => h.nm));
+    const fresh = pool.filter((d) => !recent.has(d.nm));
+    return (fresh.length > 0 ? fresh : pool)[Math.floor(Math.random() * (fresh.length > 0 ? fresh.length : pool.length))];
+  }
+
+  function setDish(d) {
+    while (dish.firstChild) dish.removeChild(dish.firstChild);
+    dish.classList.remove('empty');
+    const em = document.createElement('div'); em.className = 'em'; em.textContent = d.em;
+    const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = d.nm;
+    const tg = document.createElement('div'); tg.className = 'tag'; tg.textContent = d.tag;
+    dish.appendChild(em); dish.appendChild(nm); dish.appendChild(tg);
+  }
+
+  function spin() {
+    btnGo.disabled = true;
+    dish.classList.add('spinning');
+    let count = 0;
+    const ticker = setInterval(() => {
+      const r = DISHES[Math.floor(Math.random() * DISHES.length)];
+      setDish(r);
+      count++;
+      if (count > 12) {
+        clearInterval(ticker);
+        dish.classList.remove('spinning');
+        const final = pickDish();
+        setDish(final);
+        dish.classList.remove('bounce'); void dish.offsetWidth; dish.classList.add('bounce');
+        history.unshift(final);
+        history = history.slice(0, 10);
+        localStorage.setItem(STORAGE, JSON.stringify(history));
+        renderHistory();
+        current = final;
+        btnGo.disabled = false;
+      }
+    }, 90);
+  }
+
+  btnGo.addEventListener('click', spin);
+  $('btn-history-clear').addEventListener('click', () => {
+    if (!confirm('履歴をクリアしますか？')) return;
+    history = []; localStorage.removeItem(STORAGE); renderHistory();
+  });
+  $('btn-share').addEventListener('click', () => {
+    if (!current) return;
+    const txt = `今夜の晩ご飯は…${current.em} ${current.nm} に決定！ #晩ご飯ガチャ`;
+    const url = `https://x.com/intent/post?text=${encodeURIComponent(txt)}&url=${encodeURIComponent(SHARE_URL)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  });
+  $('btn-recipe').addEventListener('click', () => {
+    if (!current) return;
+    window.open('https://www.google.com/search?q=' + encodeURIComponent(current.nm + ' レシピ'), '_blank', 'noopener,noreferrer');
+  });
+
+  buildFilters();
+  renderHistory();
+})();
+</script>
+</body>
+</html>
